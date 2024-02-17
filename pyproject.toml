@@ -1,20 +1,28 @@
 [project]
 name = "datadup"
 version = "0.1.0"
-description = "Default template for PDM package"
+description = "Check if your test set is contained in train"
 authors = [
     {name = "Justin T Chiu", email = "chiu.justin.t@gmail.com"},
 ]
 dependencies = [
     "datasets",
+    "transformers",
     "numpy",
     "scipy",
     "datasketch",
+    "dpu-utils",
+    "tqdm",
+    "mosaicml-streaming",
 ]
 requires-python = "==3.10.*"
 readme = "README.md"
 license = {text = "MIT"}
 
-
-[tool.pdm]
-distribution = false
+[build-system]
+requires = [
+    "pdm-backend",
+    "numpy",
+    "setuptools",
+]
+build-backend = "pdm.backend"
