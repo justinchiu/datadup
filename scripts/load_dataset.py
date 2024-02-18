@@ -17,25 +17,24 @@ import numpy as np
 import datasets
 from transformers import AutoTokenizer
 import multiprocessing as mp
+from pathlib import Path
 
 import argparse
 
 parser = argparse.ArgumentParser(description="Load a dataset.")
-parser.add_argument("--data_dir", type=str)
-parser.add_argument("--save_dir", type=str)
-parser.add_argument("--name", type=str)
-parser.add_argument("--split", type=str)
+parser.add_argument("--save_dir", type=str, default="output")
+parser.add_argument("--name", type=str, default="pg19")
+parser.add_argument("--split", type=str, default="test")
 parser.add_argument("--tokenize", action="store_true")
-parser.add_argument("--tokenizer", type=str, default="gpt2")
 parser.add_argument("--pre_sep", type=bytes, default=b"\xff\xff")
 parser.add_argument("--post_sep", type=bytes, default=b"")
 args = parser.parse_args()
 
-if args.tokenize:
-    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+
+
 
 split = args.split
-data_dir = args.data_dir
 save_dir = args.save_dir
 dataset_name = args.name
 
@@ -43,12 +42,24 @@ dataset_name = args.name
 ds = datasets.load_dataset(
     dataset_name,
     split=split,
-    shuffle_files=False,
-    batch_size=2**16,
-    data_dir=data_dir,
+    trust_remote_code=True,
 )
 # assert isinstance(ds, tf.data.Dataset)
 print(ds)
+def tokenization(example):
+    output = tokenizer(example["text"])
+    out = [
+        np.array(x, dtype=np.uint16).view(np.uint8).tobytes()
+        for x in output["input_ids"]
+    ]
+    return {"idbytes": out}
+
+dataset = ds.map(tokenization, batched=True).remove_columns([
+    "short_book_title",
+    "publication_date",
+    "url",
+    "text",
+])
 
 pre_sep = args.pre_sep
 post_sep = args.post_sep
@@ -62,33 +73,19 @@ def sep():
     return pre_sep + struct.pack("<I", UID) + post_sep
 
 
-def tok(x):
-    if args.tokenize:
-        out = tokenizer.encode(x.decode("utf8"))
-        out = np.array(out, dtype=np.uint16).view(np.uint8).tobytes()
-    else:
-        out = x
-    return out
-
-
-if not os.path.exists(save_dir):
-    os.mkdir(save_dir)
+Path(save_dir).mkdir(parents=True, exist_ok=True)
 
 fout = open(os.path.join(save_dir, dataset_name + "." + split), "wb")
 
 with mp.get_context("fork").Pool(mp.cpu_count()) as p:
     i = 0
     sizes = [0]
-    for b in ds:
+    for example in dataset:
         print(i)
-
-        text = b["text"].numpy()
-        text = p.map(tok, text)
-
-        for x in text:
-            next_line = sep() + x
-            fout.write(next_line)
-            sizes.append(sizes[-1] + len(next_line))
+        x = example["idbytes"]
+        next_line = sep() + x
+        fout.write(next_line)
+        sizes.append(sizes[-1] + len(next_line))
         i += 1
 
 open(os.path.join(save_dir, dataset_name + "." + split + ".size"), "wb").write(

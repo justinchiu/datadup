@@ -7,6 +7,7 @@ authors = ["Nicholas Carlini <nicholas@carlini.com>"]
 [profile.dev]
 opt-level = 3
 overflow-checks = false  # Go FAAASSTTT!
+debug = true # for dbg only
 
 [dependencies]
 zstd = "0.5"
