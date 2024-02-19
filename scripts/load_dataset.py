@@ -34,7 +34,8 @@ args = parser.parse_args()
 
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", use_fast=True)
 
-num_cpus = mp.cpu_count()
+#num_cpus = mp.cpu_count()
+num_cpus = os.environ["SLURM_JOB_CPUS_PER_NODE"]
 
 split = args.split
 save_dir = args.save_dir
@@ -67,7 +68,7 @@ def tokenization(example):
     ]
     return {"idbytes": out}
 
-dataset = ds.map(tokenization, batched=True)
+dataset = ds.map(tokenization, batched=True, num_proc=num_cpus)
 if dataset_name == "pg19":
     dataset = dataset.remove_columns([
         "short_book_title",
