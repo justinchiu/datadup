@@ -35,7 +35,7 @@ args = parser.parse_args()
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", use_fast=True)
 
 #num_cpus = mp.cpu_count()
-num_cpus = os.environ["SLURM_JOB_CPUS_PER_NODE"]
+num_cpus = int(os.environ["SLURM_JOB_CPUS_PER_NODE"])
 
 split = args.split
 save_dir = args.save_dir
