@@ -1584,10 +1584,11 @@ fn main()  -> std::io::Result<()> {
         }
 
         Commands::CountOccurrences { data_file, query_file, print_location, load_disk } => {
-            cmd_count_occurrences(data_file,
-                                  query_file,
-  *print_location,
-  *load_disk)?;
+            cmd_count_occurrences(
+                data_file,
+                query_file,
+                *print_location,
+                *load_disk)?;
         }
 
         Commands::CountOccurrencesMulti { data_file, query_file, load_disk } => {

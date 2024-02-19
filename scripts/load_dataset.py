@@ -16,8 +16,10 @@ import struct
 import numpy as np
 import datasets
 from transformers import AutoTokenizer
+from transformers import PreTrainedTokenizerFast
 import multiprocessing as mp
 from pathlib import Path
+import tqdm
 
 import argparse
 
@@ -30,9 +32,9 @@ parser.add_argument("--pre_sep", type=bytes, default=b"\xff\xff")
 parser.add_argument("--post_sep", type=bytes, default=b"")
 args = parser.parse_args()
 
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", use_fast=True)
 
-
+num_cpus = mp.cpu_count()
 
 split = args.split
 save_dir = args.save_dir
@@ -44,7 +46,9 @@ if dataset_name == "c4":
         dataset_name, "en",
         split=split,
         trust_remote_code=True,
-        streaming=True,
+        streaming=False,
+        num_proc=num_cpus,
+        cache_dir="/scratch/jtc257/cache",
     )
 else:
     ds = datasets.load_dataset(
@@ -88,16 +92,13 @@ Path(save_dir).mkdir(parents=True, exist_ok=True)
 
 fout = open(os.path.join(save_dir, dataset_name + "." + split), "wb")
 
-with mp.get_context("fork").Pool(mp.cpu_count()) as p:
-    i = 0
-    sizes = [0]
-    for example in dataset:
-        print(i)
-        x = example["idbytes"]
-        next_line = sep() + x
-        fout.write(next_line)
-        sizes.append(sizes[-1] + len(next_line))
-        i += 1
+print("Saving datasets and sizes")
+sizes = [0]
+for example in tqdm.tqdm(dataset, total=len(dataset)):
+    x = example["idbytes"]
+    next_line = sep() + x
+    fout.write(next_line)
+    sizes.append(sizes[-1] + len(next_line))
 
 open(os.path.join(save_dir, dataset_name + "." + split + ".size"), "wb").write(
     np.array(sizes, dtype=np.uint64).tobytes()
