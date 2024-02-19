@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser(description="Load a dataset.")
 parser.add_argument("--save_dir", type=str, default="output")
 parser.add_argument("--name", type=str, default="pg19")
 parser.add_argument("--split", type=str, default="test")
-parser.add_argument("--tokenize", action="store_true")
+parser.add_argument("--stream", action="store_true")
 parser.add_argument("--pre_sep", type=bytes, default=b"\xff\xff")
 parser.add_argument("--post_sep", type=bytes, default=b"")
 args = parser.parse_args()
@@ -39,11 +39,20 @@ save_dir = args.save_dir
 dataset_name = args.name
 
 
-ds = datasets.load_dataset(
-    dataset_name,
-    split=split,
-    trust_remote_code=True,
-)
+if dataset_name == "c4":
+    ds = datasets.load_dataset(
+        dataset_name, "en",
+        split=split,
+        trust_remote_code=True,
+        streaming=True,
+    )
+else:
+    ds = datasets.load_dataset(
+        dataset_name,
+        split=split,
+        trust_remote_code=True,
+        streaming=args.stream,
+    )
 # assert isinstance(ds, tf.data.Dataset)
 print(ds)
 def tokenization(example):
@@ -54,12 +63,14 @@ def tokenization(example):
     ]
     return {"idbytes": out}
 
-dataset = ds.map(tokenization, batched=True).remove_columns([
-    "short_book_title",
-    "publication_date",
-    "url",
-    "text",
-])
+dataset = ds.map(tokenization, batched=True)
+if dataset_name == "pg19":
+    dataset = dataset.remove_columns([
+        "short_book_title",
+        "publication_date",
+        "url",
+        "text",
+    ])
 
 pre_sep = args.pre_sep
 post_sep = args.post_sep
