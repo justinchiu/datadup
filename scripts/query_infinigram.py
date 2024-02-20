@@ -46,7 +46,7 @@ for i, ex in enumerate(pg19):
 
 output = {
     "bad_idxs": bad_idxs,
-    "bad_docs": bad_docs,
+    #"bad_docs": bad_docs,
     "repeat_queries": repeat_queries,
     "repeat_counts": repeat_counts,
 }
