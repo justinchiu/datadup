@@ -7,4 +7,5 @@ test set is small -- you only have to index the test set.
 # Recommendation: Just use infinigram API.
 See `scripts/query_infinigram.py`.
 
+# No recommended
 [Suffix array implementation by N Carlini](https://github.com/google-research/deduplicate-text-datasets/tree/master).
