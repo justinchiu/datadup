@@ -25,7 +25,8 @@ for i, ex in enumerate(pg19):
             break
 
     payload = {
-        "corpus": "v4_piletrain_llama",
+        #"corpus": "v4_piletrain_llama",
+        "corpus": "v4_c4train_llama",
         "query_type": "count",
         "query": query,
     }
