@@ -7,13 +7,6 @@ authors = [
 ]
 dependencies = [
     "datasets",
-    "transformers",
-    "numpy",
-    "scipy",
-    "datasketch",
-    "dpu-utils",
-    "tqdm",
-    "mosaicml-streaming",
     "requests",
     "tqdm",
 ]
