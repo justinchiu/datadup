@@ -26,7 +26,7 @@ def check_overlap(name):
         # find first line with > 10 words
         for line in lines:
             if len(line.split()) > 10:
-                words = line.split
+                words = line.split()
                 end = max(len(words), 15)
                 query = " ".join(words[1:end])
                 break
@@ -58,6 +58,7 @@ def check_overlap(name):
             repeat_queries.append(query)
             repeat_counts.append(count)
 
+    print(f"{name}: {len(bad_idxs)} / {len(data)} examples have repeats")
     output = {
         "bad_idxs": bad_idxs,
         #"bad_docs": bad_docs,
