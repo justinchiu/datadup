@@ -2,6 +2,7 @@ import datasets
 import requests
 import json
 from pathlib import Path
+import tqdm
 
 url = "https://api.infini-gram.io/"
 pg19 = datasets.load_dataset(
@@ -15,13 +16,13 @@ bad_idxs = []
 bad_docs = []
 repeat_queries = []
 repeat_counts = []
-for i, ex in enumerate(pg19):
+for i, ex in enumerate(tqdm.tqdm(pg19)):
     text = ex["text"]
     lines = text.replace("\n\n", "\n").replace("\n\n", "\n").split("\n")
     # find first line with > 10 words
     for line in lines:
         if len(line.split()) > 10:
-            query = line
+            query = " ".join(line.split()[1:-1])
             break
 
     payload = {
@@ -36,6 +37,8 @@ for i, ex in enumerate(pg19):
 
     # Sending the POST request
     response = requests.post(url, json=payload, headers=headers)
+
+    #print(response, response.json())
 
     count = response.json()["count"]
     counts.append(count)
@@ -55,3 +58,4 @@ output = {
 path = Path("duplicates.json")
 with path.open("w") as f:
     json.dump(output, f)
+
