@@ -27,7 +27,7 @@ def check_overlap(name):
         for line in lines:
             if len(line.split()) > 10:
                 words = line.split()
-                end = max(len(words), 15)
+                end = min(len(words), 15)
                 query = " ".join(words[1:end])
                 break
 
