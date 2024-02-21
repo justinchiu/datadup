@@ -26,7 +26,9 @@ def check_overlap(name):
         # find first line with > 10 words
         for line in lines:
             if len(line.split()) > 10:
-                query = " ".join(line.split()[1:-1])
+                words = line.split
+                end = max(len(words), 15)
+                query = " ".join(words[1:end])
                 break
 
         payload = {
@@ -43,6 +45,10 @@ def check_overlap(name):
         response = requests.post(URL, json=payload, headers=headers)
 
         #print(response, response.json())
+
+        if "count" not in response.json():
+            print("ERROR!")
+            print(response.json())
 
         count = response.json()["count"]
         counts.append(count)
